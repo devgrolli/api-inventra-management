@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
-export class Product {
+export class ProductModel {
   @IsNotEmpty({ message: 'O código do produto é obrigatório.' })
   idProduct: string;
 

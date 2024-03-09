@@ -1,14 +1,23 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { User, UserRegister } from './auth.interface';
+import { UserRegisterModel } from '../model/register.model';
+import { LoginModel } from '../model/login.model';
+import { AuthenticatedGuard } from './auth.guards';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards()
+  // @UseGuards()
   @Post('login')
-  async login(@Body() { userName, password }: User) {
+  async login(@Body() loginData: LoginModel) {
+    const { userName, password } = loginData;
     const user = await this.authService.validateUser(userName, password);
     if (user) {
       return this.authService.login(user);
@@ -16,8 +25,14 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() { userName, password, email }: UserRegister) {
-    const user = await this.authService.register(userName, password, email);
+  async register(@Body(new ValidationPipe()) userRegister: UserRegisterModel) {
+    const { userName, fullName, email, password } = userRegister;
+    const user = await this.authService.register(
+      userName,
+      fullName,
+      email,
+      password,
+    );
     return user;
   }
 }

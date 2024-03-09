@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { JwtService } from '@nestjs/jwt';
-import * as admin from 'firebase-admin';
-import * as bcrypt from 'bcrypt';
-import { User } from "../auth/auth.interface";
+import * as bcryptjs from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import { User } from '../auth/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -12,53 +12,98 @@ export class AuthService {
     private firebase: FirebaseService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
-    const userRef = this.firebase.db.collection('User').doc(username);
-    const doc = await userRef.get();
+  async validateUser(userName: string, password: string): Promise<any> {
+    const usersRef = this.firebase.db.collection('User');
+    const snapshot = await usersRef.where('userName', '==', userName).get();
 
-    if (!doc.exists) {
+    if (snapshot.empty) {
       throw new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST);
     }
 
+    const doc = snapshot.docs[0];
     const user = doc.data();
-    if (!user || !user.password) {
-      throw new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST);
-    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcryptjs.compare(password, user.password);
     if (!isMatch) {
       throw new HttpException('Senha inválida', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (!user.isValidated) {
+      throw new HttpException(
+        'Aguarde a aprovação do administrador para entrar',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     return user;
   }
 
   async login(user: User) {
-    const payload = { username: user.userName, sub: user.userName };
+    const payload = { username: user.userName, sub: user.id };
     return {
       statusCode: HttpStatus.OK,
       message: 'Login realizado com sucesso',
+      body: {
+        username: user.userName,
+        fullName: user.fullName,
+      },
       access_token: this.jwtService.sign(payload),
     };
   }
 
   async register(
-    username: string,
-    password: string,
+    userName: string,
+    fullName: string,
     email: string,
+    password: string,
   ): Promise<any> {
-    const userRef = this.firebase.db.collection('User').doc(username);
+    const userSnapshot = await this.firebase.db
+      .collection('User')
+      .where('userName', '==', userName)
+      .get();
+    if (!userSnapshot.empty) {
+      throw new HttpException(
+        `Usuário ${userName} já existe, tente outro nome de usuário.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const emailSnapshot = await this.firebase.db
+      .collection('User')
+      .where('email', '==', email)
+      .get();
+    if (!emailSnapshot.empty) {
+      throw new HttpException(
+        `Email ${email} já está em uso, tente outro email.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const id = uuidv4();
+    const userRef = this.firebase.db.collection('User').doc(id);
+
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
     const user = {
-      userName: username,
-      email: email,
+      id,
+      userName,
+      fullName,
+      email,
       password: hashedPassword,
+      isValidated: false,
     };
 
     await userRef.set(user);
 
-    return user;
+    return {
+      statusCode: HttpStatus.OK,
+      message:
+        'Cadastrado com sucesso, espere o administrador fazer a confirmação.',
+      body: {
+        userName,
+        fullName,
+        email,
+      },
+    };
   }
 }

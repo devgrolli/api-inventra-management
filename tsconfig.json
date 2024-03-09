@@ -3,6 +3,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,

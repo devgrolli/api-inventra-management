@@ -7,7 +7,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { Product } from './product.model';
+import { ProductModel } from '../model/product.model';
 import axios from 'axios';
 
 @Controller('product')
@@ -26,7 +26,7 @@ export class ProductController {
 
   @Post('addProduct')
   @UsePipes(ValidationPipe)
-  async addProduct(@Body() product: Product): Promise<Product> {
+  async addProduct(@Body() product: ProductModel): Promise<ProductModel> {
     return await this.productService.addProduct(product);
   }
 
