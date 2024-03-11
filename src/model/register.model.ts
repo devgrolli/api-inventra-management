@@ -1,6 +1,5 @@
 import {
   IsEmail,
-  IsString,
   IsNotEmpty,
   MinLength,
   MaxLength,
@@ -9,16 +8,10 @@ import {
 
 export class UserRegisterModel {
   id: string;
+  telefone: string;
 
-  @IsNotEmpty({ message: 'O nome do produto é obrigatório.' })
-  @IsString({ message: 'O nome do produto deve ser uma string.' })
-  @MinLength(4, {
-    message: 'O nome do usuário deve ter pelo menos 4 caracteres.',
-  })
-  @MaxLength(20, {
-    message: 'O nome do usuário deve ter no máximo 20 caracteres.',
-  })
-  userName: string;
+  @IsNotEmpty({ message: 'O CPF é obrigatório.' })
+  cpf: string;
 
   @IsNotEmpty({ message: 'Nome completo é obrigatorio.' })
   fullName: string;

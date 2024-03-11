@@ -12,9 +12,9 @@ export class AuthService {
     private firebase: FirebaseService,
   ) {}
 
-  async validateUser(userName: string, password: string): Promise<any> {
+  async validateUser(cpf: string, password: string): Promise<any> {
     const usersRef = this.firebase.db.collection('User');
-    const snapshot = await usersRef.where('userName', '==', userName).get();
+    const snapshot = await usersRef.where('cpf', '==', cpf).get();
 
     if (snapshot.empty) {
       throw new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST);
@@ -39,11 +39,12 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const payload = { username: user.userName, sub: user.id };
+    const payload = { cpf: user.cpf, sub: user.id };
     return {
       statusCode: HttpStatus.OK,
       message: 'Login realizado com sucesso',
       body: {
+        cpf: user.cpf,
         username: user.userName,
         fullName: user.fullName,
       },
@@ -52,18 +53,18 @@ export class AuthService {
   }
 
   async register(
-    userName: string,
+    cpf: string,
     fullName: string,
     email: string,
     password: string,
   ): Promise<any> {
-    const userSnapshot = await this.firebase.db
+    const cpfSnapshot = await this.firebase.db
       .collection('User')
-      .where('userName', '==', userName)
+      .where('cpf', '==', cpf)
       .get();
-    if (!userSnapshot.empty) {
+    if (!cpfSnapshot.empty) {
       throw new HttpException(
-        `Usuário ${userName} já existe, tente outro nome de usuário.`,
+        `O CPF ${cpf} já existe.`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -86,7 +87,7 @@ export class AuthService {
 
     const user = {
       id,
-      userName,
+      cpf,
       fullName,
       email,
       password: hashedPassword,
@@ -100,10 +101,19 @@ export class AuthService {
       message:
         'Cadastrado com sucesso, espere o administrador fazer a confirmação.',
       body: {
-        userName,
+        cpf,
         fullName,
         email,
       },
     };
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    const snapshot = await this.firebase.db.collection('User').get();
+    return snapshot.docs.map((doc) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userWithoutPassword } = doc.data() as User;
+      return userWithoutPassword;
+    });
   }
 }

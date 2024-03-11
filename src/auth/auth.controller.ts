@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   UseGuards,
@@ -17,8 +18,8 @@ export class AuthController {
   // @UseGuards()
   @Post('login')
   async login(@Body() loginData: LoginModel) {
-    const { userName, password } = loginData;
-    const user = await this.authService.validateUser(userName, password);
+    const { cpf, password } = loginData;
+    const user = await this.authService.validateUser(cpf, password);
     if (user) {
       return this.authService.login(user);
     }
@@ -26,13 +27,18 @@ export class AuthController {
 
   @Post('register')
   async register(@Body(new ValidationPipe()) userRegister: UserRegisterModel) {
-    const { userName, fullName, email, password } = userRegister;
+    const { cpf, fullName, email, password } = userRegister;
     const user = await this.authService.register(
-      userName,
+      cpf,
       fullName,
       email,
       password,
     );
     return user;
+  }
+
+  @Get('getAllUsers')
+  async getAllUsers() {
+    return this.authService.getAllUsers();
   }
 }
