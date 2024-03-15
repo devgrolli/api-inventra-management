@@ -3,13 +3,13 @@ import {
   Get,
   Post,
   Body,
-  UseGuards,
   ValidationPipe,
+  // UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserRegisterModel } from '../model/register.model';
+import { UserSignUpModel } from '../model/signup.model';
 import { LoginModel } from '../model/login.model';
-import { AuthenticatedGuard } from './auth.guards';
+// import { AuthenticatedGuard } from './auth.guards';
 
 @Controller('auth')
 export class AuthController {
@@ -25,20 +25,20 @@ export class AuthController {
     }
   }
 
-  @Post('register')
-  async register(@Body(new ValidationPipe()) userRegister: UserRegisterModel) {
-    const { cpf, fullName, email, password } = userRegister;
-    const user = await this.authService.register(
-      cpf,
-      fullName,
-      email,
-      password,
-    );
+  @Post('signUp')
+  async signUp(@Body(new ValidationPipe()) userRegister: UserSignUpModel) {
+    const user = await this.authService.signUp(userRegister);
     return user;
   }
 
   @Get('getAllUsers')
   async getAllUsers() {
     return this.authService.getAllUsers();
+  }
+
+  @Post('forgotPassword')
+  async forgotPassword(@Body() data: { email: string }) {
+    console.log('data', data.email);
+    return await this.authService.forgotPassword(data.email);
   }
 }
