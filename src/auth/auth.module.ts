@@ -4,12 +4,14 @@ import { AuthController } from './auth.controller';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { FirebaseModule } from 'src/firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
+import { MailModule } from 'src/mail/mail.module';
 
 @Global()
 @Module({
   imports: [
-    FirebaseModule,
+    MailModule,
     ConfigModule,
+    FirebaseModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '60s' },

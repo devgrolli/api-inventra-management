@@ -2,7 +2,7 @@ import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { IsDateFormatBR } from 'src/decorators/dateformat.decorator';
 import { StrongPassword } from 'src/decorators/password.decorator';
 
-export class UserSignUpModel {
+export class UserSignUpDto {
   id: string;
 
   @IsNotEmpty({ message: 'Nome completo é obrigatorio.' })

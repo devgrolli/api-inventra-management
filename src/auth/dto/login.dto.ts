@@ -1,6 +1,6 @@
 import { IsNotEmpty, MinLength } from 'class-validator';
 
-export class LoginModel {
+export class LoginDto {
   @IsNotEmpty({ message: 'O CPF é obrigatório.' })
   @MinLength(11, { message: 'O CPF deve ter pelo menos 11 caracteres.' })
   cpf: string;

@@ -7,7 +7,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { ProductModel } from '../model/product.model';
+import { ProductModel } from './product.model';
 import axios from 'axios';
 
 @Controller('product')
