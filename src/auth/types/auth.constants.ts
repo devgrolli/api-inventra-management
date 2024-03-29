@@ -10,6 +10,8 @@ export const SUCCESS_MESSAGES = {
 
 export const ERROR_MESSAGES = {
   INVALID_TOKEN: 'Código inválido ou expirado.',
+  UPDATE_NOTIFICATION: 'Ocorreu um erro ao atualizar campo disableNotify',
+  UPDATE_ACCESS_USER: 'Ocorreu um erro ao atualizar a permissão do usuário',
   NO_RESET_REQUEST:
     'Não há solicitação de recuperação de senha para este e-mail.',
   INVALID_CODE: 'Código de recuperação inválido.',

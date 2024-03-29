@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  ValidationPipe,
+  Patch,
+  Param,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { UserSignUpDto } from './dto/signup.dto';
@@ -43,5 +51,21 @@ export class AuthController {
   async updatePassword(@Body(new ValidationPipe()) data: UpdatePasswordDto) {
     const { token, email, newPassword } = data;
     return await this.authService.updatePassword(token, email, newPassword);
+  }
+
+  @Patch(':cpf/disableNotify')
+  async updateDisableNotify(
+    @Param('cpf') cpf: string,
+    @Body('disableNotify') disableNotify: boolean,
+  ) {
+    return await this.authService.updateDisableNotify(cpf, disableNotify);
+  }
+
+  @Patch(':cpf/disableAccessUser')
+  async updateDisableAccessUser(
+    @Param('cpf') cpf: string,
+    @Body('isValidated') isValidated: boolean,
+  ) {
+    return await this.authService.updateDisableAccessUser(cpf, isValidated);
   }
 }

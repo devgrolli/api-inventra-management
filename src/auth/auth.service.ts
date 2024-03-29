@@ -76,14 +76,17 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const payload = { cpf: user.cpf, sub: user.id };
+    const { cpf, id, userName, fullName, disableNotify, isValidated } = user;
+    const payload = { cpf, sub: id };
     return {
       statusCode: HttpStatus.OK,
       message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
       body: {
-        cpf: user.cpf,
-        username: user.userName,
-        fullName: user.fullName,
+        cpf,
+        userName,
+        fullName,
+        disableNotify,
+        isValidated,
       },
       access_token: this.jwtService.sign(payload),
     };
@@ -117,6 +120,7 @@ export class AuthService {
       ...data,
       password: hashedPassword,
       isValidated: false,
+      disableNotify: false,
     };
 
     await newUserRef.set(user);
@@ -291,5 +295,48 @@ export class AuthService {
       const { password, ...userWithoutPassword } = doc.data() as User;
       return userWithoutPassword;
     });
+  }
+
+  async updateDisableNotify(cpf: string, disableNotify: boolean): Promise<any> {
+    try {
+      const usersSnapshot = await this.firebase.db
+        .collection(this.COLLECTION_USER)
+        .where('cpf', '==', cpf)
+        .get();
+
+      usersSnapshot.forEach((doc) => {
+        doc.ref.update({ disableNotify });
+      });
+
+      return true;
+    } catch (error) {
+      throwCustomException(
+        ERROR_MESSAGES.UPDATE_NOTIFICATION,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async updateDisableAccessUser(
+    cpf: string,
+    isValidated: boolean,
+  ): Promise<any> {
+    try {
+      const usersSnapshot = await this.firebase.db
+        .collection(this.COLLECTION_USER)
+        .where('cpf', '==', cpf)
+        .get();
+
+      usersSnapshot.forEach((doc) => {
+        doc.ref.update({ isValidated });
+      });
+
+      return true;
+    } catch (error) {
+      throwCustomException(
+        ERROR_MESSAGES.UPDATE_ACCESS_USER,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
