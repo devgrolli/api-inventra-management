@@ -10,24 +10,24 @@ export interface User {
   isValidated: boolean;
 }
 
-export interface ValidationResponse {
+export interface ApiResponse {
   statusCode: HttpStatus;
   message: string;
 }
 
-export interface SignUpResponse {
-  statusCode: HttpStatus;
-  message: string;
-  body: {
-    cpf: string;
-    fullName: string;
-    email: string;
-  };
+export interface SignUpBody {
+  cpf: string;
+  fullName: string;
+  email: string;
 }
 
-export interface ForgotPasswordResponse {
+export interface ValidationResponse extends ApiResponse {}
+
+export interface SignUpResponse extends ApiResponse {
+  body: SignUpBody;
+}
+
+export interface ForgotPasswordResponse extends ApiResponse {
   email: string;
   expiryTime: number;
-  statusCode: HttpStatus;
-  message: string;
 }

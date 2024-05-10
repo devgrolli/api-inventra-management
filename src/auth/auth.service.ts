@@ -8,7 +8,12 @@ import { htmlRecoveryPassword } from '../mail/html/forgotPassword';
 import { throwCustomException } from '../utils/exception.utils';
 import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
-import { MAIL, ERROR_MESSAGES, SUCCESS_MESSAGES } from './types/auth.constants';
+import {
+  MAIL,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  ERROR_MESSAGES_DYNAMIC,
+} from './types/auth.constants';
 import {
   timestampCodeExpires,
   generateCode,
@@ -104,7 +109,7 @@ export class AuthService {
     const emailSnapshot = await this.validateInCollection(email, 'email');
     if (!emailSnapshot.empty) {
       throwCustomException(
-        ERROR_MESSAGES.EMAIL_IN_USE(email),
+        ERROR_MESSAGES_DYNAMIC.EMAIL_IN_USE(email),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -286,14 +291,33 @@ export class AuthService {
     };
   }
 
-  async getAllUsers(): Promise<any[]> {
-    const snapshot = await this.firebase.db
+  async getAllUsers(lastDocId?: string): Promise<any[]> {
+    const pageSize = 3;
+    let query = this.firebase.db
       .collection(this.COLLECTION_USER)
-      .get();
+      .orderBy('fullName')
+      .limit(pageSize);
+
+    if (lastDocId) {
+      const lastDoc = await this.firebase.db
+        .collection(this.COLLECTION_USER)
+        .doc(lastDocId)
+        .get();
+      if (lastDoc.exists) {
+        query = query.startAfter(lastDoc);
+      } else {
+        throw new Error('Invalid lastDocId');
+      }
+    }
+
+    const snapshot = await query.get();
     return snapshot.docs.map((doc) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...userWithoutPassword } = doc.data() as User;
-      return userWithoutPassword;
+      const { password, ...userWithoutPassword } = doc.data();
+      return {
+        ...userWithoutPassword,
+        id: doc.id,
+      };
     });
   }
 
@@ -337,6 +361,15 @@ export class AuthService {
         ERROR_MESSAGES.UPDATE_ACCESS_USER,
         HttpStatus.BAD_REQUEST,
       );
+    }
+  }
+
+  async validateToken(token: string): Promise<boolean> {
+    try {
+      const payload = this.jwtService.verify(token);
+      return !!payload;
+    } catch (error) {
+      return false;
     }
   }
 }
